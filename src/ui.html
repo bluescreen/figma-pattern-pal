@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pattern Pal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 12px;
+      color: #1e1e1e;
+      background: #ffffff;
+      width: 360px;
+      height: 520px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid #e5e5e5;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e1e1e;
+      line-height: 1.2;
+    }
+
+    .header .tagline {
+      font-size: 11px;
+      color: #6b6b6b;
+      margin-top: 2px;
+    }
+
+    /* Scan Button */
+    .scan-section {
+      padding: 12px 16px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    #scanBtn {
+      width: 100%;
+      padding: 10px 16px;
+      background: #0d99ff;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+
+    #scanBtn:hover:not(:disabled) {
+      background: #0b87e0;
+    }
+
+    #scanBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Scrollable content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 12px;
+    }
+
+    .content::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 2px;
+    }
+
+    /* Formagotchi */
+    #formagotchi {
+      text-align: center;
+      padding: 12px 0 4px;
+      transition: opacity 0.3s ease;
+    }
+
+    #formagotchi.hidden {
+      display: none;
+    }
+
+    /* Egg device shell */
+    .tama-egg {
+      display: inline-block;
+      position: relative;
+      width: 160px;
+      height: 192px;
+      background: linear-gradient(145deg, #ff7eb3 0%, #ff4da6 30%, #e0449a 60%, #c9367e 100%);
+      border-radius: 50% 50% 46% 46% / 55% 55% 42% 42%;
+      box-shadow:
+        0 4px 14px rgba(0,0,0,0.25),
+        inset 0 2px 4px rgba(255,255,255,0.35),
+        inset 0 -3px 6px rgba(0,0,0,0.15);
+      border: 2.5px solid #b8306e;
+    }
+
+    /* Speckle / confetti decoration on the egg */
+    .tama-egg::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: inherit;
+      background-image:
+        radial-gradient(circle 2px, #ffe066 1px, transparent 1.5px),
+        radial-gradient(circle 1.5px, #66e0ff 1px, transparent 1.5px),
+        radial-gradient(circle 2px, #b3ff66 1px, transparent 1.5px),
+        radial-gradient(circle 1.5px, #ff66d9 1px, transparent 1.5px),
+        radial-gradient(circle 1.5px, #66b3ff 1px, transparent 1.5px),
+        radial-gradient(circle 2px, #ffb366 1px, transparent 1.5px),
+        radial-gradient(circle 1.5px, #c4ff66 1px, transparent 1.5px),
+        radial-gradient(circle 2px, #ff6680 1px, transparent 1.5px);
+      background-position:
+        18px 14px, 42px 8px, 120px 16px, 135px 38px,
+        12px 55px, 138px 120px, 30px 150px, 115px 155px;
+      background-repeat: no-repeat;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* LCD screen inset */
+    .tama-screen {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 104px;
+      height: 88px;
+      background: #b8c878;
+      border: 3px solid #7a7a5a;
+      border-radius: 6px;
+      box-shadow:
+        inset 0 1px 6px rgba(0,0,0,0.15),
+        0 1px 0 rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      image-rendering: pixelated;
+      overflow: hidden;
+    }
+
+    /* Scanlines overlay */
+    .tama-screen::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      border-radius: 3px;
+    }
+
+    .formagotchi-face {
+      display: inline-block;
+      line-height: 1;
+      transition: opacity 0.4s ease;
+      position: relative;
+      z-index: 1;
+      /* walk position driven by JS */
+      transform: translateX(0px);
+    }
+
+    .formagotchi-face.fade-out {
+      opacity: 0;
+    }
+
+    /* hop-step: quick bounce when taking a step */
+    @keyframes tama-step {
+      0%   { transform: translateY(0); }
+      30%  { transform: translateY(-6px); }
+      50%  { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    .formagotchi-face.stepping svg {
+      animation: tama-step 0.25s ease-out;
+    }
+
+    /* Three buttons below screen */
+    .tama-buttons {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+    }
+
+    .tama-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.25);
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.3);
+    }
+
+    .tama-btn:active {
+      transform: scale(0.9);
+      box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    }
+
+    .tama-btn--a { background: linear-gradient(180deg, #ffde59, #f5c518); }
+    .tama-btn--b { background: linear-gradient(180deg, #66d4ff, #29b6f6); }
+    .tama-btn--c { background: linear-gradient(180deg, #ff8a65, #f4511e); }
+
+    /* Keychain ring */
+    .tama-ring {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 12px;
+      border: 3px solid #999;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .formagotchi-line {
+      font-size: 11px;
+      font-style: italic;
+      color: #6b6b6b;
+      margin-top: 8px;
+      min-height: 16px;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Pixel art animations */
+    @keyframes tama-hop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes tama-wobble {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-6deg); }
+      75% { transform: rotate(6deg); }
+    }
+
+    @keyframes tama-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    @keyframes tama-blink {
+      0%, 85%, 100% { opacity: 1; }
+      90% { opacity: 0; }
+    }
+
+    @keyframes tama-sweat {
+      0%, 100% { transform: translateY(0); opacity: 1; }
+      80% { transform: translateY(6px); opacity: 0.3; }
+      81% { transform: translateY(0); opacity: 0; }
+      95% { opacity: 0; }
+    }
+
+    /* Insights */
+    #insights {
+      padding-bottom: 8px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6b6b6b;
+      margin: 12px 0 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #6b6b6b;
+      font-size: 12px;
+      padding: 24px 0;
+    }
+
+    .error-state {
+      text-align: center;
+      color: #f24822;
+      font-size: 12px;
+      padding: 16px 0;
+    }
+
+    .insight-card {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #1e1e1e;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .insight-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .insight-card.cross-file {
+      border-left: 3px solid #a259ff;
+    }
+
+    .insight-card .cross-file-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #a259ff;
+      margin-bottom: 3px;
+    }
+
+    /* Clusters */
+    #clusters {
+      padding-bottom: 8px;
+    }
+
+    #clusters.hidden {
+      display: none;
+    }
+
+    .clusters-toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6b6b6b;
+      margin: 12px 0 6px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .clusters-toggle:hover {
+      color: #1e1e1e;
+    }
+
+    .clusters-toggle .arrow {
+      font-size: 8px;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    .clusters-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .clusters-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.25s ease;
+    }
+
+    .clusters-body.open {
+      max-height: 600px;
+    }
+
+    .cluster-card {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .cluster-label {
+      font-weight: 600;
+      color: #1e1e1e;
+    }
+
+    .cluster-count {
+      font-size: 11px;
+      color: #6b6b6b;
+      margin-top: 2px;
+    }
+
+    .cluster-divergence {
+      font-size: 11px;
+      color: #f24822;
+      margin-top: 3px;
+    }
+
+    .cluster-divergence::before {
+      content: "⚠ ";
+    }
+
+    /* Footer */
+    .footer {
+      padding: 10px 16px;
+      border-top: 1px solid #e5e5e5;
+      flex-shrink: 0;
+    }
+
+    #annotateBtn {
+      width: 100%;
+      padding: 8px 16px;
+      background: transparent;
+      color: #0d99ff;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1.5px solid #0d99ff;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    #annotateBtn:hover {
+      background: #0d99ff;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Pattern Pal</h1>
+    <div class="tagline">Your playful pattern buddy</div>
+  </div>
+
+  <!-- Scan Button -->
+  <div class="scan-section">
+    <button id="scanBtn">Scan Patterns</button>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="content">
+
+    <!-- Formagotchi -->
+    <div id="formagotchi" class="hidden">
+      <div class="tama-egg">
+        <div class="tama-ring"></div>
+        <div class="tama-screen">
+          <div class="formagotchi-face" id="formagotchiFace"></div>
+        </div>
+        <div class="tama-buttons">
+          <div class="tama-btn tama-btn--a"></div>
+          <div class="tama-btn tama-btn--b"></div>
+          <div class="tama-btn tama-btn--c"></div>
+        </div>
+      </div>
+      <div class="formagotchi-line" id="formagotchiLine"></div>
+    </div>
+
+    <!-- Insights -->
+    <div id="insights">
+      <div class="empty-state" id="emptyState">Click Scan to analyze patterns</div>
+    </div>
+
+    <!-- Clusters -->
+    <div id="clusters" class="hidden">
+      <button class="clusters-toggle" id="clustersToggle">
+        <span class="arrow" id="clustersArrow">&#9654;</span>
+        Clusters
+      </button>
+      <div class="clusters-body" id="clustersBody"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <button id="annotateBtn">Annotate Canvas</button>
+  </div>
+
+  <script>
+    var scanBtn = document.getElementById('scanBtn');
+    var annotateBtn = document.getElementById('annotateBtn');
+    var formagotchiEl = document.getElementById('formagotchi');
+    var formagotchiFace = document.getElementById('formagotchiFace');
+    var formagotchiLine = document.getElementById('formagotchiLine');
+    var insightsEl = document.getElementById('insights');
+    var emptyState = document.getElementById('emptyState');
+    var clustersEl = document.getElementById('clusters');
+    var clustersToggle = document.getElementById('clustersToggle');
+    var clustersArrow = document.getElementById('clustersArrow');
+    var clustersBody = document.getElementById('clustersBody');
+
+    // Pixel-art Tamagotchi character builder
+    // Each pixel is a 4x4 SVG rect on a 22x22 grid (88x88 output)
+    var P = 4; // pixel size
+    var C = '#2c2c2c'; // pixel color (dark)
+
+    function px(data) {
+      var rects = '';
+      for (var i = 0; i < data.length; i++) {
+        rects += '<rect x="' + (data[i][0]*P) + '" y="' + (data[i][1]*P) + '" width="' + P + '" height="' + P + '" fill="' + (data[i][2] || C) + '"/>';
+      }
+      return rects;
+    }
+
+    // Shared body outline: rounded blob with pointy ears (like a classic Tamagotchi pet)
+    var bodyPixels = [
+      // Ears
+      [6,1],[15,1],
+      [5,2],[6,2],[15,2],[16,2],
+      [5,3],[7,3],[14,3],[16,3],
+      // Head top
+      [7,3],[8,3],[9,3],[10,3],[11,3],[12,3],[13,3],[14,3],
+      // Head sides + fill
+      [6,4],[7,4],[8,4],[9,4],[10,4],[11,4],[12,4],[13,4],[14,4],[15,4],
+      [5,5],[6,5],[15,5],[16,5],
+      [5,6],[16,6],
+      [5,7],[16,7],
+      [5,8],[16,8],
+      // Body widens
+      [4,9],[17,9],
+      [4,10],[17,10],
+      [4,11],[17,11],
+      [4,12],[17,12],
+      [4,13],[17,13],
+      // Body bottom
+      [5,14],[16,14],
+      [5,15],[16,15],
+      // Feet
+      [6,16],[7,16],[14,16],[15,16],
+      [6,17],[7,17],[14,17],[15,17],
+    ];
+
+    // Calm: happy eyes + smile
+    var calmFace = [
+      // Eyes (2px each, open and happy)
+      [8,7],[9,7],
+      [12,7],[13,7],
+      // Smile
+      [8,11],[13,11],
+      [9,12],[10,12],[11,12],[12,12],
+    ];
+
+    // Confused: uneven eyes + wavy mouth + question mark
+    var confusedFace = [
+      // Left eye normal
+      [8,7],[9,7],
+      // Right eye raised
+      [12,6],[13,6],
+      // Raised eyebrow
+      [12,5,'#2c2c2c'],[13,5,'#2c2c2c'],[14,5,'#2c2c2c'],
+      // Wavy mouth
+      [8,11],[9,12],[10,11],[11,12],[12,11],[13,12],
+      // Question mark
+      [18,3],[19,3],[20,3],
+      [20,4],
+      [19,5],[20,5],
+      [19,6],
+      [19,8],
+    ];
+
+    // Overstimulated: X eyes + zigzag mouth + sweat + exclamation
+    var overstimFace = [
+      // X eyes (left)
+      [8,6],[9,7],[8,8],[10,6],[9,7],[10,8],
+      // X eyes (right)
+      [12,6],[13,7],[12,8],[14,6],[13,7],[14,8],
+      // Zigzag mouth
+      [7,11],[8,12],[9,11],[10,12],[11,11],[12,12],[13,11],[14,12],
+      // Exclamation left
+      [2,4],[2,5],[2,6],[2,8],
+      // Exclamation right
+      [19,4],[19,5],[19,6],[19,8],
+    ];
+
+    // Sweat drops for overstimulated (separate so we can animate)
+    var sweatPixels = [
+      [3,2],[18,2],
+      [3,3],[18,3],
+    ];
+
+    function buildTama(facePixels, moodAnim, extras) {
+      // moodAnim is a subtle idle animation layered on the SVG (not walk — walk is JS driven)
+      var svg = '<svg width="80" height="72" viewBox="0 0 88 76" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;display:block;'
+        + (moodAnim ? 'animation:' + moodAnim + ';' : '') + '">';
+      svg += px(bodyPixels);
+      svg += px(facePixels);
+      if (extras) svg += extras;
+      svg += '</svg>';
+      return svg;
+    }
+
+    var moodSvg = {
+      calm: buildTama(calmFace, ''),
+      confused: buildTama(confusedFace, 'tama-wobble 2s ease-in-out infinite'),
+      overstimulated: buildTama(overstimFace, 'tama-shake 0.15s linear infinite',
+        '<g style="animation:tama-sweat 1.2s ease-in-out infinite">' + px(sweatPixels) + '</g>')
+    };
+
+    // ---- Tamagotchi walk engine ----
+    // The character wanders left and right inside the LCD screen with random pauses,
+    // just like the original Tamagotchi idle animation.
+    var walkX = 0;          // current X offset in px
+    var walkDir = 1;        // 1 = right, -1 = left
+    var walkMin = -10;      // left bound (px)
+    var walkMax = 10;       // right bound (px)
+    var walkStep = 5;       // pixels per step
+    var walkTimer = null;
+    var currentMood = 'calm';
+
+    function scheduleStep() {
+      // Random delay: 400-1200ms for calm, faster when overstimulated
+      var baseDelay = currentMood === 'overstimulated' ? 250 : currentMood === 'confused' ? 400 : 600;
+      var jitter = currentMood === 'overstimulated' ? 200 : currentMood === 'confused' ? 400 : 800;
+      var delay = baseDelay + Math.floor(Math.random() * jitter);
+
+      walkTimer = setTimeout(doStep, delay);
+    }
+
+    function doStep() {
+      if (!formagotchiFace) return;
+
+      // Occasionally pause (idle) — ~25% chance, less when overstimulated
+      var pauseChance = currentMood === 'overstimulated' ? 0.08 : 0.25;
+      if (Math.random() < pauseChance) {
+        // Just wait, no movement
+        scheduleStep();
+        return;
+      }
+
+      // Randomly change direction sometimes
+      if (Math.random() < 0.2) {
+        walkDir = -walkDir;
+      }
+
+      // Move
+      walkX += walkStep * walkDir;
+
+      // Bounce off bounds
+      if (walkX >= walkMax) { walkX = walkMax; walkDir = -1; }
+      if (walkX <= walkMin) { walkX = walkMin; walkDir = 1; }
+
+      // Flip character to face walk direction
+      var scaleX = walkDir < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+      formagotchiFace.style.transform = 'translateX(' + walkX + 'px) ' + scaleX;
+
+      // Trigger step bounce
+      formagotchiFace.classList.remove('stepping');
+      // Force reflow to restart animation
+      void formagotchiFace.offsetWidth;
+      formagotchiFace.classList.add('stepping');
+
+      scheduleStep();
+    }
+
+    function startWalk(mood) {
+      currentMood = mood || 'calm';
+      if (walkTimer) clearTimeout(walkTimer);
+      scheduleStep();
+    }
+
+    function stopWalk() {
+      if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; }
+    }
+
+    var scanning = false;
+
+    // Scan button
+    scanBtn.addEventListener('click', function () {
+      if (scanning) return;
+      scanning = true;
+      scanBtn.textContent = 'Scanning\u2026';
+      scanBtn.disabled = true;
+      parent.postMessage({ pluginMessage: { type: 'SCAN_PATTERNS' } }, '*');
+    });
+
+    // Annotate button
+    annotateBtn.addEventListener('click', function () {
+      parent.postMessage({ pluginMessage: { type: 'ANNOTATE_CANVAS' } }, '*');
+    });
+
+    // Clusters toggle
+    clustersToggle.addEventListener('click', function () {
+      var isOpen = clustersBody.classList.toggle('open');
+      clustersArrow.classList.toggle('open', isOpen);
+    });
+
+    // Message handler
+    window.onmessage = function (event) {
+      var msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'SHOW_INSIGHTS') {
+        var p = msg.payload || msg;
+        resetScanButton();
+        renderFormagotchi(p.formagotchi);
+        renderInsights(p.insights);
+        renderClusters(p.clusters);
+      }
+
+      if (msg.type === 'SCAN_ERROR') {
+        var ep = msg.payload || msg;
+        resetScanButton();
+        formagotchiEl.classList.add('hidden');
+        clustersEl.classList.add('hidden');
+        insightsEl.innerHTML = '<div class="error-state">' + escapeHtml(ep.error || 'Something went wrong during scan.') + '</div>';
+      }
+    };
+
+    function resetScanButton() {
+      scanning = false;
+      scanBtn.textContent = 'Scan Patterns';
+      scanBtn.disabled = false;
+    }
+
+    function renderFormagotchi(state) {
+      if (!state) {
+        formagotchiEl.classList.add('hidden');
+        stopWalk();
+        return;
+      }
+      formagotchiEl.classList.remove('hidden');
+
+      var svg = moodSvg[state.mood] || moodSvg.calm;
+
+      // Crossfade: fade out, swap SVG, fade in
+      formagotchiFace.classList.add('fade-out');
+      setTimeout(function () {
+        formagotchiFace.innerHTML = svg;
+        formagotchiLine.textContent = state.line || '';
+        formagotchiFace.classList.remove('fade-out');
+        // Start walking with mood-appropriate speed
+        startWalk(state.mood);
+      }, 400);
+    }
+
+    function renderInsights(result) {
+      if (!result) {
+        insightsEl.innerHTML = '<div class="empty-state">Click Scan to analyze patterns</div>';
+        return;
+      }
+
+      var fileInsights = result.fileInsights || [];
+      var crossFileInsights = result.crossFileInsights || [];
+
+      if (fileInsights.length === 0 && crossFileInsights.length === 0) {
+        insightsEl.innerHTML = '<div class="empty-state">No patterns found. Try a different page.</div>';
+        return;
+      }
+
+      var html = '';
+
+      if (fileInsights.length > 0) {
+        html += '<div class="section-label">This file</div>';
+        for (var i = 0; i < fileInsights.length; i++) {
+          html += '<div class="insight-card">' + escapeHtml(fileInsights[i].message) + '</div>';
+        }
+      }
+
+      if (crossFileInsights.length > 0) {
+        html += '<div class="section-label">Across files</div>';
+        for (var j = 0; j < crossFileInsights.length; j++) {
+          html += '<div class="insight-card cross-file">'
+            + '<div class="cross-file-tag">Cross-file</div>'
+            + '<div>' + escapeHtml(crossFileInsights[j].message) + '</div>'
+            + '</div>';
+        }
+      }
+
+      insightsEl.innerHTML = html;
+    }
+
+    function renderClusters(clusters) {
+      if (!clusters || clusters.length === 0) {
+        clustersEl.classList.add('hidden');
+        clustersBody.innerHTML = '';
+        return;
+      }
+
+      clustersEl.classList.remove('hidden');
+
+      var html = '';
+      for (var i = 0; i < clusters.length; i++) {
+        var c = clusters[i];
+        var patternCount = c.patterns ? c.patterns.length : 0;
+        var divergences = c.divergences || [];
+
+        html += '<div class="cluster-card">';
+        html += '<div class="cluster-label">' + escapeHtml(c.label) + '</div>';
+        html += '<div class="cluster-count">' + patternCount + ' pattern' + (patternCount !== 1 ? 's' : '') + '</div>';
+
+        for (var d = 0; d < divergences.length; d++) {
+          html += '<div class="cluster-divergence">' + escapeHtml(divergences[d]) + '</div>';
+        }
+
+        html += '</div>';
+      }
+
+      clustersBody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+  </script>
+
+</body>
+</html>

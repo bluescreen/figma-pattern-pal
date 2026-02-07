@@ -1,0 +1,10 @@
+{
+  "name": "Pattern Pal",
+  "id": "pattern-pal",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "enableProposedApi": false,
+  "editorType": ["figma", "dev"],
+  "capabilities": ["inspect"]
+}

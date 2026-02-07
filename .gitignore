@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.js
+!vite.config.ts
+!vitest.config.ts
+!eslint.config.mjs
+.DS_Store
