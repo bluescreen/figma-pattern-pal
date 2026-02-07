@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { formatAnnotationText, getAnnotationName } from '../annotations';
 import type { Cluster } from '../types';
 

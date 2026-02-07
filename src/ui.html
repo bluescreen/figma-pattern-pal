@@ -285,6 +285,12 @@
       95% { opacity: 0; }
     }
 
+    @keyframes tama-huff {
+      0%, 100% { transform: scaleY(1) translateY(0); }
+      40% { transform: scaleY(1.06) translateY(-2px); }
+      60% { transform: scaleY(0.97) translateY(1px); }
+    }
+
     /* Insights */
     #insights {
       padding-bottom: 8px;
@@ -599,6 +605,23 @@
       [19,4],[19,5],[19,6],[19,8],
     ];
 
+    // Annoyed: bold V-brows + glaring eyes + frown + anger vein
+    var annoyedFace = [
+      // Bold V-shaped angry eyebrows (inside face, 2 rows thick)
+      [7,5],[8,5],[9,6],[10,6],          // left brow: high outside → low inside
+      [14,5],[13,5],[12,6],[11,6],       // right brow: mirrors left
+      // Glaring eyes (pushed below brows)
+      [8,8],[9,8],
+      [12,8],[13,8],
+      // Frown (inverted smile: flat top, down-turned corners)
+      [9,11],[10,11],[11,11],[12,11],
+      [8,12],[13,12],
+      // Anger vein cross (top-right, manga style)
+      [18,0,'#c0392b'],
+      [17,1,'#c0392b'],[19,1,'#c0392b'],
+      [18,2,'#c0392b'],
+    ];
+
     // Sweat drops for overstimulated (separate so we can animate)
     var sweatPixels = [
       [3,2],[18,2],
@@ -617,8 +640,9 @@
     }
 
     var moodSvg = {
-      calm: buildTama(calmFace, ''),
+      calm: buildTama(calmFace, 'tama-hop 2s ease-in-out infinite, tama-blink 4s step-end infinite'),
       confused: buildTama(confusedFace, 'tama-wobble 2s ease-in-out infinite'),
+      annoyed: buildTama(annoyedFace, 'tama-huff 1.8s ease-in-out infinite'),
       overstimulated: buildTama(overstimFace, 'tama-shake 0.15s linear infinite',
         '<g style="animation:tama-sweat 1.2s ease-in-out infinite">' + px(sweatPixels) + '</g>')
     };
@@ -636,8 +660,8 @@
 
     function scheduleStep() {
       // Random delay: 400-1200ms for calm, faster when overstimulated
-      var baseDelay = currentMood === 'overstimulated' ? 250 : currentMood === 'confused' ? 400 : 600;
-      var jitter = currentMood === 'overstimulated' ? 200 : currentMood === 'confused' ? 400 : 800;
+      var baseDelay = currentMood === 'overstimulated' ? 250 : currentMood === 'annoyed' ? 350 : currentMood === 'confused' ? 400 : 600;
+      var jitter = currentMood === 'overstimulated' ? 200 : currentMood === 'annoyed' ? 300 : currentMood === 'confused' ? 400 : 800;
       var delay = baseDelay + Math.floor(Math.random() * jitter);
 
       walkTimer = setTimeout(doStep, delay);
@@ -647,7 +671,7 @@
       if (!formagotchiFace) return;
 
       // Occasionally pause (idle) — ~25% chance, less when overstimulated
-      var pauseChance = currentMood === 'overstimulated' ? 0.08 : 0.25;
+      var pauseChance = currentMood === 'overstimulated' ? 0.08 : currentMood === 'annoyed' ? 0.12 : 0.25;
       if (Math.random() < pauseChance) {
         // Just wait, no movement
         scheduleStep();
@@ -690,6 +714,9 @@
     }
 
     var scanning = false;
+
+    // Default to annoyed for testing
+    renderFormagotchi({ mood: 'annoyed', line: 'Would it kill you to be consistent?' });
 
     // Scan button
     scanBtn.addEventListener('click', function () {

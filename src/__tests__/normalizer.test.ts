@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { normalizePattern, normalizePatterns, getFieldCountRange } from '../normalizer';
 import type { Pattern } from '../types';
 

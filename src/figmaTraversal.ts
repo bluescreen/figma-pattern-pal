@@ -2,6 +2,9 @@ import type { RawContainer, RawNode } from './scanner';
 
 const CONTAINER_ROLES = ['container-form', 'container-filter'] as const;
 
+const INPUT_RE = /input|field|text/i;
+const PRIMARY_RE = /submit|save|apply|button|sign|login|register|confirm|send/i;
+
 function isContainerNode(
   node: SceneNode,
 ): node is FrameNode | ComponentNode | InstanceNode {
@@ -27,16 +30,34 @@ export function buildRawNode(node: SceneNode): RawNode {
   };
 }
 
+function collectAllNodes(node: SceneNode, out: RawNode[]): void {
+  out.push(buildRawNode(node));
+  if ('children' in node) {
+    for (const child of (node as FrameNode).children) {
+      collectAllNodes(child, out);
+    }
+  }
+}
+
+function hasFormShape(nodes: RawNode[]): boolean {
+  let inputs = 0;
+  let primary = 0;
+  for (const n of nodes) {
+    const role = n.role || n.name;
+    if (INPUT_RE.test(role)) inputs++;
+    if (PRIMARY_RE.test(role)) primary++;
+  }
+  return inputs >= 2 && primary >= 1;
+}
+
 export function walkTree(node: SceneNode, result: FrameNode[]): void {
   if (!isContainerNode(node)) return;
 
-  const role = node.getPluginData('role');
-  const match =
-    (CONTAINER_ROLES as readonly string[]).includes(role) ||
-    inferContainerRole(node.name) !== undefined;
-
-  if (match) {
+  const all: RawNode[] = [];
+  collectAllNodes(node, all);
+  if (hasFormShape(all)) {
     result.push(node as FrameNode);
+    return;
   }
 
   if ('children' in node) {
@@ -58,12 +79,10 @@ export function getPatternContainers(): RawContainer[] {
     const role =
       (CONTAINER_ROLES as readonly string[]).includes(pluginRole)
         ? pluginRole
-        : inferContainerRole(node.name);
+        : inferContainerRole(node.name) ?? 'container-form';
 
-    const children: RawNode[] = ('children' in node
-      ? Array.from(node.children)
-      : []
-    ).map(buildRawNode);
+    const leaves: RawNode[] = [];
+    collectAllNodes(node, leaves);
 
     return {
       id: node.id,
@@ -72,7 +91,7 @@ export function getPatternContainers(): RawContainer[] {
       behavior: node.getPluginData('behavior') || 'unknown',
       intent: node.getPluginData('intent') || 'unknown',
       context: node.getPluginData('context') || 'unknown',
-      children,
+      children: leaves,
     };
   });
 }

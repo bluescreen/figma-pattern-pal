@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { scanPatterns, type RawContainer } from '../scanner';
 
 describe('scanPatterns', () => {

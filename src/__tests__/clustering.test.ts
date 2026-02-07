@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { clusterPatterns } from '../clustering';
 import type { NormalizedPattern } from '../types';
 

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import type { Memory, StorageAdapter } from '../types';
 import { loadMemory, saveMemory, updateMemory, evictMemory } from '../memory';
 

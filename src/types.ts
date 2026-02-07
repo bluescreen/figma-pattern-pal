@@ -52,7 +52,7 @@ export interface InsightResult {
   crossFileInsights: Insight[];
 }
 
-export type FormagotchiMood = 'calm' | 'confused' | 'overstimulated';
+export type FormagotchiMood = 'calm' | 'confused' | 'annoyed' | 'overstimulated';
 
 export interface FormagotchiState {
   mood: FormagotchiMood;

@@ -1,7 +1,8 @@
 import type { FormagotchiMood, FormagotchiState } from './types';
 
 export const CALM_MAX = 2;
-export const CONFUSED_MAX = 5;
+export const CONFUSED_MAX = 4;
+export const ANNOYED_MAX = 6;
 
 const LINES: Record<FormagotchiMood, string[]> = {
   calm: [
@@ -13,6 +14,11 @@ const LINES: Record<FormagotchiMood, string[]> = {
     'Hmm, things are getting interesting...',
     'I see some creative differences!',
     'A few patterns are doing their own thing.',
+  ],
+  annoyed: [
+    'Okay, this is getting on my nerves.',
+    'Would it kill you to be consistent?',
+    'I am not angry, just disappointed.',
   ],
   overstimulated: [
     'Whoa, pattern party over here!',
@@ -35,6 +41,8 @@ export function getFormagotchiState(
     mood = 'calm';
   } else if (divergenceCount <= CONFUSED_MAX) {
     mood = 'confused';
+  } else if (divergenceCount <= ANNOYED_MAX) {
+    mood = 'annoyed';
   } else {
     mood = 'overstimulated';
   }

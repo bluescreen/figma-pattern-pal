@@ -1,4 +1,10 @@
-import { getFormagotchiState, CALM_MAX, CONFUSED_MAX } from '../formagotchi';
+import { describe, it, expect } from 'vitest';
+import {
+  getFormagotchiState,
+  CALM_MAX,
+  CONFUSED_MAX,
+  ANNOYED_MAX,
+} from '../formagotchi';
 
 describe('getFormagotchiState', () => {
   it('returns calm mood for 0-2 divergences', () => {
@@ -7,14 +13,20 @@ describe('getFormagotchiState', () => {
     }
   });
 
-  it('returns confused mood for 3-5 divergences', () => {
+  it('returns confused mood for 3-4 divergences', () => {
     for (let i = CALM_MAX + 1; i <= CONFUSED_MAX; i++) {
       expect(getFormagotchiState(i, 0).mood).toBe('confused');
     }
   });
 
-  it('returns overstimulated mood for 6+ divergences', () => {
-    expect(getFormagotchiState(6, 0).mood).toBe('overstimulated');
+  it('returns annoyed mood for 5-6 divergences', () => {
+    for (let i = CONFUSED_MAX + 1; i <= ANNOYED_MAX; i++) {
+      expect(getFormagotchiState(i, 0).mood).toBe('annoyed');
+    }
+  });
+
+  it('returns overstimulated mood for 7+ divergences', () => {
+    expect(getFormagotchiState(ANNOYED_MAX + 1, 0).mood).toBe('overstimulated');
     expect(getFormagotchiState(20, 0).mood).toBe('overstimulated');
   });
 

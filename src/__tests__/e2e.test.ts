@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { scanPatterns, type RawContainer } from '../scanner';
 import { normalizePatterns } from '../normalizer';
 import { clusterPatterns } from '../clustering';
@@ -136,7 +137,7 @@ describe('e2e pipeline', () => {
       0,
     );
     const state = getFormagotchiState(divergenceCount, Object.keys(memory).length);
-    expect(['calm', 'confused', 'overstimulated']).toContain(state.mood);
+    expect(['calm', 'confused', 'annoyed', 'overstimulated']).toContain(state.mood);
     expect(state.line.length).toBeGreaterThan(0);
   });
 

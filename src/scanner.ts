@@ -53,7 +53,7 @@ export function scanPatterns(containers: RawContainer[]): Pattern[] {
 
     if (inputs.length < 2 || !hasPrimary) continue;
 
-    patterns.push({
+    const pattern: Pattern = {
       id: container.id,
       type,
       inputs,
@@ -61,7 +61,9 @@ export function scanPatterns(containers: RawContainer[]): Pattern[] {
       behavior: container.behavior || 'unknown',
       intent: container.intent || 'unknown',
       context: container.context || 'default',
-    });
+    };
+    console.log('[scan]', container.id, container.name, `→ ${type}`, `inputs=${inputs.length}`, `actions=${actions.length}`);
+    patterns.push(pattern);
   }
 
   return patterns;
