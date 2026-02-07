@@ -1,5 +1,5 @@
 import type { StorageAdapter } from './types';
-import { getPatternContainers } from './mcpQueries';
+import { getPatternContainers } from './figmaTraversal';
 import { scanPatterns } from './scanner';
 import { normalizePatterns } from './normalizer';
 import { clusterPatterns } from './clustering';

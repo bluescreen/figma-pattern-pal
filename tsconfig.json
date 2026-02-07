@@ -12,8 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/@figma/plugin-typings", "./node_modules/@types"],
-    "types": ["@figma/plugin-typings"]
+    "types": []
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/__tests__"]

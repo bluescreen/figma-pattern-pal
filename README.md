@@ -52,13 +52,13 @@ Optional properties: `behavior`, `intent`, `context` — see [PRD](pattern_pal_p
 ```
 src/
 ├── types.ts           # Shared type definitions
-├── scanner.ts         # Extract patterns from MCP data
+├── scanner.ts         # Extract patterns from Figma data
 ├── normalizer.ts      # Generate fingerprints
 ├── clustering.ts      # Group patterns, detect divergences
 ├── memory.ts          # Cross-file memory (figma.clientStorage)
 ├── insights.ts        # File-level & cross-file insights
 ├── formagotchi.ts     # Mood & playful commentary
-├── mcpQueries.ts      # Figma node traversal
+├── figmaTraversal.ts  # Figma node traversal
 ├── annotations.ts     # Canvas sticky-note annotations
 ├── code.ts            # Plugin entry point
 ├── ui.html            # Plugin UI
